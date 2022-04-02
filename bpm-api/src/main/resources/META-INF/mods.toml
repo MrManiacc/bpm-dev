@@ -6,29 +6,23 @@ loaderVersion="[3,)" # Require at least 3.x
 license='LGPL'
 
 [[mods]]
-modId="bpmmod"
-version="${file.jarVersion}"
-displayName="ExampleMod"
+modId="bpmapi"
+version="1.0.0"
+displayName="BpmApi"
 credits="The ExampleMod dev team"
 authors="ExampleModAuthor"
 description='''
 Example mod that uses Kotlin for Forge.
 '''
-[[dependencies.bpmmod]]
+[[dependencies.bpmapi]]
     modId="forge"
     mandatory=true
     versionRange="[39,)"
     ordering="NONE"
     side="BOTH"
-[[dependencies.bpmmod]]
+[[dependencies.bpmapi]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.18,)"
     ordering="NONE"
     side="BOTH"
-# [[dependencies.bpmmod]]
-#     modId="bpmapi"
-#     mandatory=true
-#     versionRange="[1.0.0]"
-#     ordering="AFTER"
-#     side="BOTH"

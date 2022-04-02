@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": {"model":  "bpmmod:block/quantum_block"}
+  }
+}

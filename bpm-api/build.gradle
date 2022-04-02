@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
     }
     dependencies {
@@ -9,29 +10,28 @@ buildscript {
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
         // OPTIONAL Gradle plugin for Kotlin Serialization
         classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
+
     }
 }
+apply plugin: 'com.github.johnrengelman.shadow'
+
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'kotlin'
-apply plugin: 'java'
 apply plugin: 'kotlinx-serialization'
 
 apply from: 'https://raw.githubusercontent.com/thedarkcolour/KotlinForForge/site/thedarkcolour/kotlinforforge/gradle/kff-3.1.0.gradle'
 
 version = '1.0.0'
-group = 'com.github.bpmmod'
-archivesBaseName = 'bpmmod'
+group = 'com.github.bpmapi'
+archivesBaseName = 'bpmapi'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
 ext {
     imguiVersion = '1.86.4'
 }
-
-
 minecraft {
     mappings channel: 'official', version: '1.18.2'
-
     runs {
         client {
             workingDirectory project.file('run')
@@ -40,7 +40,7 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                bpmmod {
+                bpmapi {
                     source sourceSets.main
                 }
             }
@@ -53,10 +53,9 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                bpmmod {
+                bpmapi {
                     source sourceSets.main
                 }
-
             }
         }
 
@@ -66,53 +65,32 @@ minecraft {
             property 'forge.logging.markers', 'SCAN,LOADING,CORE'
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'bpmmod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
+            args '--mod', 'bpmapi', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
 
             mods {
-                bpmmod {
+                bpmapi {
                     source sourceSets.main
                 }
-
             }
         }
     }
+}
+
+// Include assets and data from data generators
+sourceSets.main.resources { srcDirs 'src/generated/resources/' }
+
+configurations {
+    embed
+    implementation.extendsFrom(embed)
 }
 
 repositories {
     mavenCentral()
 }
 
-// Include assets and data from data generators
-sourceSets.main.resources { srcDirs 'src/generated/resources/' }
-
-
 dependencies {
     // Use the latest version of Minecraft Forge
     minecraft 'net.minecraftforge:forge:1.18.2-40.0.4'
-    implementation(project("bpm-api"))
-    library("io.github.spair:imgui-java-binding:$imguiVersion"){
-        transitive = false
-    }
-    library("io.github.spair:imgui-java-lwjgl3:$imguiVersion"){
-        transitive = false
-    }
-    library("io.github.spair:imgui-java-natives-windows:$imguiVersion"){
-        transitive = false
-    }
-
-    implementation("io.github.spair:imgui-java-binding:$imguiVersion")
-    implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
-    implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
-}
-
-
-task output(type: Copy) {
-    dependsOn "reobfJar"
-    from "build/reobfJar"
-    into 'builds'
-    rename { String fileName ->
-        fileName.replace("output", "bpm-${project.version}")
-    }
 }
 
 compileKotlin {
@@ -120,18 +98,20 @@ compileKotlin {
 }
 
 jar {
+    destinationDirectory.set(file("${rootProject.rootDir}/run/mods"))
     manifest {
         attributes([
-                'Specification-Title'     : "bpmmod",
-                'Specification-Vendor'    : "bpmmodsareus",
+                'Specification-Title'     : "bpmapi",
+                'Specification-Vendor'    : "bpmapisareus",
                 'Specification-Version'   : "1", // We are version 1 of ourselves
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.version,
-                'Implementation-Vendor'   : "bpmmodsareus",
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'Implementation-Vendor'   : "bpmapisareus",
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
 
 
-jar.finalizedBy('reobfJar')
+jar.finalizedBy("reobfJar")
+
