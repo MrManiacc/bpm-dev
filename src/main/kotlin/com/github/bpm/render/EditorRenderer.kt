@@ -5,7 +5,7 @@ import com.github.bpmapi.api.graph.node.BinaryNode
 import com.github.bpmapi.api.graph.node.Comparison
 import com.github.bpmapi.api.graph.node.TickNode
 import com.github.bpmapi.api.graph.node.VarNode
-import com.github.bpmapi.api.type.SystemType
+import com.github.bpmapi.api.type.Type
 import imgui.ImGui
 import imgui.extension.imnodes.ImNodes
 import imgui.flag.ImGuiMouseButton
@@ -77,14 +77,14 @@ class EditorRenderer(private val graph: Graph) {
         //Temporary
         if (ImGui.beginPopup("node_editor_context")) {
             if (ImGui.button("Create Variable")) {
-                val node = VarNode(SystemType.BOOLEAN, false)
+                val node = VarNode(Type.BOOLEAN, false)
                 graph.addNode(node)
                 ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
                 ImGui.closeCurrentPopup()
             }
             //Oof
             if (ImGui.button("Create Comparison")) {
-                val node = BinaryNode(SystemType.INT, Comparison.EqualTo)
+                val node = BinaryNode(Type.INT, Comparison.EqualTo)
                 graph.addNode(node)
                 ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
                 ImGui.closeCurrentPopup()

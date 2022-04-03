@@ -5,7 +5,6 @@ package com.github.bpm
 import com.github.bpm.objects.quantum.QuantumBlock
 import com.github.bpm.objects.quantum.QuantumItem
 import com.github.bpm.objects.quantum.QuantumTile
-import com.github.bpm.render.Gui
 import com.github.bpm.util.*
 import com.github.bpm.util.runOnRender
 import com.github.bpm.util.whenClient
@@ -28,8 +27,8 @@ object Bpm : BpmMod("bpmmod") {
      * ========================Network registry=======================
      */
     object Network : NetworkRegistry() {
-        val SYNC_REQUEST by register { SyncRequestPacket() }
-        val SYNC_RESPONSE by register { SyncResponsePacket() }
+        val SYNC_REQUEST by register { GraphRequest() }
+        val SYNC_RESPONSE by register { GraphResponse() }
     }
 
     /**

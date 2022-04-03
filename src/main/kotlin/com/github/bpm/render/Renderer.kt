@@ -7,7 +7,7 @@ import com.github.bpmapi.api.graph.connector.VarConnector
 import com.github.bpmapi.api.graph.node.*
 import com.github.bpmapi.api.graph.render.ConnectorRenderer
 import com.github.bpmapi.api.graph.render.NodeRenderer
-import com.github.bpmapi.api.type.SystemType
+import com.github.bpmapi.api.type.Type
 import imgui.ImColor
 import imgui.ImGui
 import imgui.extension.imnodes.ImNodes
@@ -15,7 +15,7 @@ import imgui.extension.imnodes.flag.ImNodesColorStyle
 import imgui.type.ImInt
 
 class Renderer : NodeRenderer, ConnectorRenderer {
-    private val types = SystemType.values().map { it.name }.toTypedArray()
+    private val types = Type.values().map { it.name }.toTypedArray()
     private val comparisons = Comparison.values().map { it.display }.toTypedArray()
     private val selected = ImInt(0)
 
@@ -25,10 +25,10 @@ class Renderer : NodeRenderer, ConnectorRenderer {
         ImNodes.pushColorStyle(ImNodesColorStyle.TitleBarHovered, ImColor.intToColor(149, 20, 210))
         ImNodes.pushColorStyle(ImNodesColorStyle.TitleBarSelected, ImColor.intToColor(153, 10, 220))
         begin(node)
-        selected.set((node.type as SystemType).ordinal)
+        selected.set(node.type.ordinal)
         ImGui.pushItemWidth(80f)
         if (ImGui.combo("type##${node.id}", selected, types)) {
-            node.type = SystemType.values()[selected.get()]
+            node.type = Type.values()[selected.get()]
             node.output.type = node.type
             node.unattach()//must detach all links when updating type
             info { "Updated node type to ${node.type.typeName}" }
@@ -43,10 +43,10 @@ class Renderer : NodeRenderer, ConnectorRenderer {
 
     override fun renderCompareNode(node: BinaryNode) {
         begin(node)
-        selected.set((node.type as SystemType).ordinal)
+        selected.set(node.type.ordinal)
         ImGui.pushItemWidth(80f)
         if (ImGui.combo("type##${node.id}", selected, types)) {
-            node.type = SystemType.values()[selected.get()]
+            node.type = Type.values()[selected.get()]
             node.nodeA.type = node.type
             node.nodeB.type = node.type
             node.unattach()//must detach all links when updating type

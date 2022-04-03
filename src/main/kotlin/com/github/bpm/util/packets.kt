@@ -1,26 +1,27 @@
 package com.github.bpm.util
 
+import com.github.bpmapi.api.graph.Graph
 import com.github.bpmapi.net.Packet
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 
-class SyncRequestPacket : Packet() {
-    var syncBlock: BlockPos = BlockPos.ZERO
+class GraphResponse : Packet() {
+    var graph: Graph = Graph()
+    var blockPos: BlockPos = BlockPos.ZERO
 
     override fun write(buffer: FriendlyByteBuf) {
-        buffer.writeBlockPos(syncBlock)
+        buffer.writeNbt(graph.serializeNBT())
+        buffer.writeBlockPos(blockPos)
     }
 
     override fun read(buffer: FriendlyByteBuf) {
-        syncBlock = buffer.readBlockPos()
+        graph.deserializeNBT(buffer.readNbt()!!)
+        this.blockPos = buffer.readBlockPos()
     }
 
-    override fun toString(): String {
-        return syncBlock.toShortString()
-    }
 }
 
-class SyncResponsePacket : Packet() {
+class GraphRequest : Packet() {
     var syncBlock: BlockPos = BlockPos.ZERO
 
     override fun write(buffer: FriendlyByteBuf) {

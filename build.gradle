@@ -29,6 +29,13 @@ ext {
 }
 
 
+sourceSets {
+
+    main {
+        kotlin.srcDirs('src/main/kotlin', 'src/api/kotlin')
+    }
+}
+
 minecraft {
     mappings channel: 'official', version: '1.18.2'
 
@@ -42,6 +49,7 @@ minecraft {
             mods {
                 bpmmod {
                     source sourceSets.main
+//                    sources(sourceSets.main, sourceSets.api)
                 }
             }
         }
@@ -54,6 +62,7 @@ minecraft {
 
             mods {
                 bpmmod {
+//                    sources(sourceSets.main, sourceSets.api)
                     source sourceSets.main
                 }
 
@@ -70,7 +79,9 @@ minecraft {
 
             mods {
                 bpmmod {
+//                    sources(sourceSets.main, sourceSets.api)
                     source sourceSets.main
+
                 }
 
             }
@@ -83,20 +94,20 @@ repositories {
 }
 
 // Include assets and data from data generators
-sourceSets.main.resources { srcDirs 'src/generated/resources/' }
+//sourceSets.main.resources { srcDirs 'src/generated/resources/' }
 
 
 dependencies {
     // Use the latest version of Minecraft Forge
     minecraft 'net.minecraftforge:forge:1.18.2-40.0.4'
-    implementation(project("bpm-api"))
-    library("io.github.spair:imgui-java-binding:$imguiVersion"){
+//    implementation(project("bpm-api"))
+    library("io.github.spair:imgui-java-binding:$imguiVersion") {
         transitive = false
     }
-    library("io.github.spair:imgui-java-lwjgl3:$imguiVersion"){
+    library("io.github.spair:imgui-java-lwjgl3:$imguiVersion") {
         transitive = false
     }
-    library("io.github.spair:imgui-java-natives-windows:$imguiVersion"){
+    library("io.github.spair:imgui-java-natives-windows:$imguiVersion") {
         transitive = false
     }
 

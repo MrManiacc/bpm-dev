@@ -1,8 +1,8 @@
 package com.github.bpm.objects.quantum
 
 import com.github.bpm.render.EditorRenderer
-import com.github.bpm.render.Gui
 import com.github.bpm.render.PropertiesRenderer
+import com.github.bpm.util.Gui
 import com.mojang.blaze3d.vertex.PoseStack
 import imgui.extension.imnodes.ImNodes
 import imgui.extension.imnodes.ImNodesContext
@@ -10,7 +10,7 @@ import imgui.extension.nodeditor.NodeEditorContext
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.TextComponent
 
-class QuantumScreen(tile: QuantumTile) : Screen(TextComponent("Quantum Screen")) {
+class QuantumScreen(private val tile: QuantumTile) : Screen(TextComponent("Quantum Screen")) {
     private val context = NodeEditorContext()
     private val nodeContext = ImNodesContext()
     private val editorRenderer = EditorRenderer(tile.graph)
@@ -28,6 +28,7 @@ class QuantumScreen(tile: QuantumTile) : Screen(TextComponent("Quantum Screen"))
 
 
     override fun onClose() {
+        tile.pushGraph()
         context.destroy()
         nodeContext.destroy()
         super.onClose()
