@@ -1,32 +1,48 @@
 package com.github.bpm.render
 
 import com.github.bpmapi.api.graph.Graph
-import com.github.bpmapi.api.graph.node.BinaryNode
-import com.github.bpmapi.api.graph.node.Comparison
-import com.github.bpmapi.api.graph.node.TickNode
-import com.github.bpmapi.api.graph.node.VarNode
+import com.github.bpmapi.api.graph.node.*
 import com.github.bpmapi.api.type.Type
+import com.google.common.collect.Queues
 import imgui.ImGui
 import imgui.extension.imnodes.ImNodes
+import imgui.extension.imnodes.flag.ImNodesMiniMapLocation
 import imgui.flag.ImGuiMouseButton
 import imgui.type.ImInt
 import org.lwjgl.glfw.GLFW.GLFW_KEY_DELETE
+import java.util.*
 
-class EditorRenderer(private val graph: Graph) {
+class GraphRenderer(private val graph: Graph) {
     private val linkA = ImInt()
     private val linkB = ImInt()
     private var hovered = false
-    private val nodeRenderer = Renderer()
-    private var nextLinkId = 0
     private val startTime = System.currentTimeMillis()
+    private val positions: Queue<Graph.PositionMeta> = Queues.newArrayDeque()
 
     fun render() {
-        graph.iterate(nodeRenderer::renderNode)
+        graph.iterate(Node::render)
+        ImNodes.miniMap(0.2f, ImNodesMiniMapLocation.BottomRight)
         hovered = ImNodes.isEditorHovered()
-        graph.outputs.forEach {
-            it.links.forEach { (linkId, link) ->
-                ImNodes.link(linkId, link.id, it.id)
-            }
+//        var id = 0
+//        graph.inputs.forEach { pin ->
+//            pin.links.forEach {
+//                ImNodes.link(id++, pin.id, it.value)
+//            }
+//        }
+        graph.iterateLinks { linkId, input, output ->
+            ImNodes.link(linkId, input.id, output.id)
+        }
+        graph.drainMetas {
+            ImNodes.setNodeScreenSpacePos(it.nodeId, it.x, it.y)
+        }
+    }
+
+    /**
+     * Used to update the positions in the graph
+     */
+    fun beforeClose() {
+        graph.iterate {
+            graph.addMeta(it.id, ImNodes.getNodeScreenSpacePosX(it.id), ImNodes.getNodeScreenSpacePosY(it.id))
         }
     }
 
@@ -36,7 +52,8 @@ class EditorRenderer(private val graph: Graph) {
             val source = graph.findByOutputId(linkA.get())
             val target = graph.findByInputId(linkB.get())
             if (source != null && target != null) {
-                source.linkTo(target, nextLinkId++)
+                graph.link(target, source)
+//                source.linkTo(target, nextLinkId++)
             }
         }
 
@@ -76,21 +93,51 @@ class EditorRenderer(private val graph: Graph) {
         }
         //Temporary
         if (ImGui.beginPopup("node_editor_context")) {
+            if (ImGui.button("Create Function")) {
+                val node = FunctionNode()
+                graph.addNode(node)
+                ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                ImGui.closeCurrentPopup()
+            }
+            if (ImGui.button("Create Call")) {
+                val node = CallNode()
+                graph.addNode(node)
+                ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                ImGui.closeCurrentPopup()
+            }
             if (ImGui.button("Create Variable")) {
                 val node = VarNode(Type.BOOLEAN, false)
                 graph.addNode(node)
                 ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
                 ImGui.closeCurrentPopup()
             }
-            //Oof
-            if (ImGui.button("Create Comparison")) {
-                val node = BinaryNode(Type.INT, Comparison.EqualTo)
+
+            if (ImGui.button("Create Tick")) {
+                val node = TickNode()
                 graph.addNode(node)
                 ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
                 ImGui.closeCurrentPopup()
             }
-            if (ImGui.button("Create EventLoop")) {
-                val node = TickNode()
+            if (ImGui.button("Create Extract")) {
+                val node = ExtractNode()
+                graph.addNode(node)
+                ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                ImGui.closeCurrentPopup()
+            }
+            if (ImGui.button("Create Buffer")) {
+                val node = BufferNode()
+                graph.addNode(node)
+                ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                ImGui.closeCurrentPopup()
+            }
+            if (ImGui.button("Create Insert")) {
+                val node = InsertNode()
+                graph.addNode(node)
+                ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                ImGui.closeCurrentPopup()
+            }
+            if (ImGui.button("Create Block Link")) {
+                val node = BlockNode()
                 graph.addNode(node)
                 ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
                 ImGui.closeCurrentPopup()

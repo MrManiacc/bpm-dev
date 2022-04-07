@@ -1,6 +1,6 @@
 package com.github.bpmapi.api.graph.node
 
-import com.github.bpmapi.api.graph.connector.VarConnector
+import com.github.bpmapi.api.graph.connector.VarPin
 import com.github.bpmapi.api.type.Type
 import com.github.bpmapi.util.getEnum
 import com.github.bpmapi.util.putEnum
@@ -13,7 +13,7 @@ class VarNode(
     var type: Type = Type.INT,
     value: Any? = null
 ) : Node("Variable") {
-    val output by output(VarConnector("value", type, value))
+    val output by output(VarPin("value", type, value))
 
     override fun CompoundTag.serialize() {
         putEnum("type", this@VarNode.type)
@@ -24,4 +24,5 @@ class VarNode(
         this@VarNode.type = getEnum("type")
         output.deserializeNBT(getCompound("value"))
     }
+
 }

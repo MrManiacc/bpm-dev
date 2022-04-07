@@ -6,10 +6,14 @@ import com.github.bpmapi.api.type.Type
 import com.mojang.math.Vector3f
 import com.mojang.math.Vector4f
 import net.minecraft.core.BlockPos
-import net.minecraft.nbt.*
-import net.minecraftforge.common.util.*
+import net.minecraft.core.Direction
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.ListTag
+import net.minecraft.nbt.Tag
+import net.minecraft.world.item.ItemStack
+import net.minecraftforge.common.util.INBTSerializable
+import net.minecraftforge.items.IItemHandler
 import java.util.*
-import kotlin.collections.ArrayList
 
 interface Serial : INBTSerializable<CompoundTag> {
     fun CompoundTag.serialize()
@@ -22,6 +26,38 @@ interface Serial : INBTSerializable<CompoundTag> {
     }
 
     override fun deserializeNBT(nbt: CompoundTag) = nbt.deserialize()
+}
+
+fun IItemHandler.serialize(): CompoundTag {
+    val nbtTagList = ListTag()
+    for (i in 0 until slots) {
+        val stack = getStackInSlot(i)
+        if (!stack.isEmpty) {
+            val itemTag = CompoundTag()
+            itemTag.putInt("Slot", i)
+            stack.save(itemTag)
+            nbtTagList.add(itemTag)
+        }
+    }
+    val nbt = CompoundTag()
+    nbt.put("Items", nbtTagList)
+    nbt.putInt("Size", slots)
+    return nbt
+}
+
+fun IItemHandler.deserialize(tag: CompoundTag) {
+    val size = tag.getInt("Size")
+    val tagList: ListTag = tag.getList("Items", Tag.TAG_COMPOUND.toInt())
+    assert(size == this.slots && tagList.size == size)
+    for (i in 0 until tagList.size) {
+        val itemTags = tagList.getCompound(i)
+        val slot = itemTags.getInt("Slot")
+        if (slot in 0 until slots) {
+            //Remove the item from the slot
+            extractItem(slot, 64, false)
+            insertItem(slot, ItemStack.of(itemTags), false)
+        }
+    }
 }
 
 fun CompoundTag.putPrimitive(name: String, value: Any?) = when (value) {
@@ -41,6 +77,14 @@ fun CompoundTag.putPrimitive(name: String, value: Any?) = when (value) {
         putEnum("${name}_type", Type.STRING)
         putString("${name}_value", value)
     }
+    is BlockPos -> {
+        putEnum("${name}_type", Type.BLOCK_POS)
+        putBlockPos("${name}_value", value)
+    }
+    is Direction -> {
+        putEnum("${name}_type", Type.BLOCK_FACE)
+        putEnum("${name}_value", value)
+    }
     else -> putEnum("${name}_type", Type.NULL)//Unsupported
 }
 
@@ -50,6 +94,8 @@ fun CompoundTag.getPrimitive(name: String): Any? {
         Type.INT -> getInt("${name}_value")
         Type.FLOAT -> getFloat("${name}_value")
         Type.STRING -> getString("${name}_value")
+        Type.BLOCK_POS -> getBlockPos("${name}_value")
+        Type.BLOCK_FACE -> getEnum<Direction>("${name}_value")
         else -> null //Null
     }
 }
@@ -89,13 +135,7 @@ inline fun <reified T : INBTSerializable<CompoundTag>> CompoundTag.putDeepList(
     this.putInt("${name}_list_size", list.size)
     list.forEachIndexed { i, value ->
         tag.putClass("c_$i", value::class.java)
-        if (value is Serial) {
-            with(value) {
-                val newTag = CompoundTag()
-                newTag.serialize()
-                tag.put("v_$i", newTag)
-            }
-        } else tag.put("v_$i", value.serializeNBT())
+        tag.put("v_$i", value.serializeNBT())
     }
     this.put("${name}_list", tag)
     return this

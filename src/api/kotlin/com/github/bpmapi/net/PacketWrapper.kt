@@ -2,6 +2,8 @@ package com.github.bpmapi.net
 
 import com.github.bpmapi.util.debug
 import com.github.bpmapi.util.warn
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.fml.DistExecutor
 import net.minecraftforge.network.NetworkDirection
 import net.minecraftforge.network.NetworkEvent
 
@@ -42,12 +44,17 @@ class PacketWrapper<T : Packet>(private val supplier: () -> T) {
                     }
                 }
                 NetworkDirection.PLAY_TO_SERVER -> {
-                    for (listener in serverListeners) {
-                        if (listener(packet, ctx)) {
-                            handled = true
-                            break
+                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER) {
+                        Runnable {
+                            for (listener in serverListeners) {
+                                if (listener(packet, ctx)) {
+                                    handled = true
+                                    break
+                                }
+                            }
                         }
                     }
+
                 }
                 else -> warn { "Attempted to handle login packet" }
 

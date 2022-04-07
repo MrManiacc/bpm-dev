@@ -1,6 +1,6 @@
 package com.github.bpmapi.util
 
-import com.github.bpmapi.register.BpmMod
+import com.github.bpmapi.api.BpmMod
 import org.apache.logging.log4j.LogManager
 
 internal val logger = LogManager.getLogger(BpmMod.currentId)

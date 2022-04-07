@@ -1,6 +1,11 @@
 package com.github.bpm.util
 
-import com.github.bpmapi.api.graph.connector.VarConnector
+import com.github.bpm.Bpm
+import com.github.bpm.render.NodeRenderer
+import com.github.bpmapi.api.graph.Graph
+import com.github.bpmapi.api.graph.connector.CapabilityPin
+import com.github.bpmapi.api.graph.connector.InventoryPin
+import com.github.bpmapi.api.graph.connector.VarPin
 import com.github.bpmapi.api.type.Type
 import imgui.ImGui
 import imgui.ImGuiStyle
@@ -14,11 +19,9 @@ import imgui.internal.flag.ImGuiDockNodeFlags
 import imgui.type.ImInt
 import imgui.type.ImString
 import net.minecraft.client.Minecraft
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import org.lwjgl.glfw.GLFW
-
-internal val intArrayBuffer = IntArray(1)
-internal val floatArrayBuffer = FloatArray(1)
-internal val stringBuffer = ImString()
 
 
 /**
@@ -56,7 +59,7 @@ object Gui {
         if (!initialized) {
             initImGui()
             imGuiGlfw.init(handle, true);
-            imGuiGl3.init("#version 120"); //Use version of #120 for mac support (max allowed version otherwise exception on mac)
+            imGuiGl3.init("#version 410"); //Use version of #120 for mac support (max allowed version otherwise exception on mac)
             initialized = true
             println("Created the render context!")
             ImNodes.createContext();
@@ -249,10 +252,27 @@ object Gui {
 
 }
 
+private val intArrayBuffer = IntArray(1)
+private val floatArrayBuffer = FloatArray(1)
+private val stringBuffer = ImString()
+private val blockPosBuffer = IntArray(3)
+private val currentFace = ImInt()
+private val faces = Direction.values().map { it.name }.toTypedArray()
 
+internal fun CapabilityPin.drawValue() {
+    if (ImGui.beginListBox("inventory")) {
+        for (i in 0 until slots) {
+            val item = getStackInSlot(i)
+            if (!item.isEmpty) {
+                ImGui.text(item.toString())
+            }
+        }
+        ImGui.endListBox()
+    }
+}
 
-internal fun VarConnector.drawValue(overrideName: String? = null, padding: Float = 38f) {
-    val name = overrideName ?: this.name
+internal fun VarPin.drawValue(overrideName: String? = null, padding: Float = 38f) {
+    val name = (overrideName ?: this.name).replace(" in", "").replace(" out", "")
     var updated = false
     when (type) {
         Type.INT -> {
@@ -293,8 +313,30 @@ internal fun VarConnector.drawValue(overrideName: String? = null, padding: Float
                 updated = true
             }
         }
+        Type.BLOCK_POS -> {
+            if (value !is BlockPos) value = BlockPos.ZERO
+            val pos = value as BlockPos
+
+            blockPosBuffer[0] = pos.x
+            blockPosBuffer[1] = pos.y
+            blockPosBuffer[2] = pos.z
+            if (ImGui.inputInt3("$name##$id", blockPosBuffer)) {
+                this.value = BlockPos(blockPosBuffer[0], blockPosBuffer[1], blockPosBuffer[2])
+                updated = true
+            }
+        }
+        Type.BLOCK_FACE -> {
+            if (value !is Direction) value = Direction.NORTH
+            currentFace.set((value as Direction).ordinal)
+            if (ImGui.combo("$name##$id", currentFace, faces)) {
+                this.value = Direction.values()[currentFace.get()]
+                updated = true
+            }
+        }
     }
-    if (updated) this.links.values.filterIsInstance<VarConnector>().forEach {
+    if (updated) this.links.values.mapNotNull {
+        this.parent.graph.findByInputId(it) ?: this.parent.graph.findByOutputId(it)
+    }.filterIsInstance<VarPin>().forEach {
         it.value = this.value
     }
 }

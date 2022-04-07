@@ -1,12 +1,28 @@
 package com.github.bpmapi.util
 
 import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.resources.ResourceKey
+import net.minecraft.server.MinecraftServer
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.dimension.DimensionType
 import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.common.extensions.IForgeLevel
 import net.minecraftforge.common.util.LogicalSidedProvider
 import net.minecraftforge.fml.LogicalSide
 import net.minecraftforge.fml.loading.FMLEnvironment
 import net.minecraftforge.fml.util.thread.SidedThreadGroups
+import net.minecraftforge.items.IItemHandler
+import net.minecraftforge.items.ItemHandlerHelper
+import net.minecraftforge.server.ServerLifecycleHooks
 import java.util.concurrent.CompletableFuture
+
+private val currentServer: MinecraftServer
+    get() = ServerLifecycleHooks.getCurrentServer()
+
+fun getLevel(key: ResourceKey<Level>): Level =
+    currentServer.getLevel(key)!!
+
 
 /**
  * This will do ors of the given values.
@@ -15,6 +31,14 @@ internal fun Int.orEquals(vararg ints: Int): Int {
     var out = this
     for (element in ints) out = out or element
     return out
+}
+
+internal fun IItemHandler.extractTo(to: IItemHandler, count: Int) {
+    for (i in 0 until slots) {
+        val extracted = extractItem(i, count, false)
+        val leftOver = ItemHandlerHelper.insertItem(to, extracted, false)
+        insertItem(i, leftOver, false)
+    }
 }
 
 

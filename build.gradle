@@ -30,7 +30,6 @@ ext {
 
 
 sourceSets {
-
     main {
         kotlin.srcDirs('src/main/kotlin', 'src/api/kotlin')
     }
@@ -111,9 +110,17 @@ dependencies {
         transitive = false
     }
 
+    library("io.github.spair:imgui-java-natives-macos:$imguiVersion") {
+        transitive = false
+    }
+    library("io.github.spair:imgui-java-natives-linux:$imguiVersion") {
+        transitive = false
+    }
     implementation("io.github.spair:imgui-java-binding:$imguiVersion")
     implementation("io.github.spair:imgui-java-lwjgl3:$imguiVersion")
     implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
+    implementation("io.github.spair:imgui-java-natives-macos:$imguiVersion")
+    implementation("io.github.spair:imgui-java-natives-linux:$imguiVersion")
 }
 
 
@@ -131,6 +138,13 @@ compileKotlin {
 }
 
 jar {
+    configurations.library.each { dep ->
+        if (dep.name.contains("imgui"))
+            from(project.zipTree(dep)) {
+                exclude 'META-INF', 'META-INF/**'
+                // you may exclude other things here if you want, or maybe copy the META-INF
+            }
+    }
     manifest {
         attributes([
                 'Specification-Title'     : "bpmmod",

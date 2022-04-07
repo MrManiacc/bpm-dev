@@ -1,64 +1,48 @@
 package com.github.bpm.objects.quantum
 
 import com.github.bpm.Bpm
-import com.github.bpm.util.GraphResponse
-import com.github.bpm.util.info
-import com.github.bpm.util.runOnServer
 import com.github.bpmapi.api.graph.Graph
 import com.github.bpmapi.api.tile.BpmTile
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.Connection
-import net.minecraft.network.protocol.Packet
-import net.minecraft.network.protocol.game.ClientGamePacketListener
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket
-import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.entity.BlockEntity
-import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraftforge.network.NetworkEvent
 
 /**
  * This does all the dirty work of our tile entity
  */
-class QuantumTile(pos: BlockPos, state: BlockState) : BpmTile(Bpm.Tiles.QUANTUM, pos, state) {
-    var graph: Graph = Graph()
+class QuantumTile(pos: BlockPos, state: BlockState) : BpmTile(Bpm.Tiles.Quantum, pos, state) {
+    var graph: Graph = Graph(this)
         private set
-
-    init {
-        Bpm.Network.SYNC_RESPONSE.serverListener(::onClientSync)
-    }
-
-
-    private fun onClientSync(packet: GraphResponse, context: NetworkEvent.Context): Boolean {
-        println("test")
-        if (level?.isClientSide == false) {
-            runOnServer { //thread saftey?
-                graph = packet.graph
-                update()
-            }
-        }
-
-        return true
-    }
 
     fun pushGraph() {
         if (level?.isClientSide == true) {
-            val packet = Bpm.Network.SYNC_RESPONSE {
-                graph = this@QuantumTile.graph
+            val packet = Bpm.Packets.GraphUpdate {
                 blockPos = this@QuantumTile.worldPosition
+                graph = this@QuantumTile.graph.serializeNBT()
+                world = level!!.dimension()
             }
-            Bpm.Network.sendToServer(packet)
+            Bpm.Packets.sendToServer(packet)
         }
     }
 
-    override fun saveTag(tag: CompoundTag) {
+
+    fun requestGraph() {
+        if (level?.isClientSide == true) {
+            val packet = Bpm.Packets.GraphRequest {
+                world = level!!.dimension()
+                blockPos = worldPosition.immutable()
+            }
+            Bpm.Packets.sendToServer(packet)
+        }
+    }
+
+    override fun saveAdditional(tag: CompoundTag) {
+        super.saveAdditional(tag)
         tag.put("graph", graph.serializeNBT())
     }
 
-    override fun loadTag(tag: CompoundTag) {
+    override fun load(tag: CompoundTag) {
+        super.load(tag)
         graph.deserializeNBT(tag.getCompound("graph"))
     }
-
-
 }

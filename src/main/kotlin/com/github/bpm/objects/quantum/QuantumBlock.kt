@@ -23,15 +23,16 @@ class QuantumBlock : Block(Properties.of(Material.HEAVY_METAL).lightLevel { 2 }.
     EntityBlock {
 
     override fun newBlockEntity(pos: BlockPos, state: BlockState): BlockEntity? =
-        Bpm.Tiles.QUANTUM.create(pos, state)
+        Bpm.Tiles.Quantum.create(pos, state)
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : BlockEntity?> getTicker(
         world: Level,
         state: BlockState,
         type: BlockEntityType<T>
-    ): BlockEntityTicker<T> = QuantumTicker as BlockEntityTicker<T>
-
+    ): BlockEntityTicker<T> {
+        return QuantumTicker as BlockEntityTicker<T>
+    }
 
     override fun use(
         state: BlockState,
@@ -41,10 +42,10 @@ class QuantumBlock : Block(Properties.of(Material.HEAVY_METAL).lightLevel { 2 }.
         hand: InteractionHand,
         result: BlockHitResult
     ): InteractionResult {
-        if (!world.isClientSide) return InteractionResult.PASS // on client side, don't do anything
+        if (!world.isClientSide) return InteractionResult.SUCCESS // on client side, don't do anything
         val tile = world.getBlockEntity(pos)
         if (tile is QuantumTile)
             Minecraft.getInstance().setScreen(QuantumScreen(tile))
-        return InteractionResult.CONSUME
+        return InteractionResult.SUCCESS
     }
 }

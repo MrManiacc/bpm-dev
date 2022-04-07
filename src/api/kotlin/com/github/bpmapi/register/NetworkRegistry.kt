@@ -1,6 +1,7 @@
-package com.github.bpmapi.net
+package com.github.bpmapi.register
 
-import com.github.bpmapi.register.IRegister
+import com.github.bpmapi.net.Packet
+import com.github.bpmapi.net.PacketWrapper
 import com.github.bpmapi.util.debug
 import com.github.bpmapi.util.info
 import net.minecraft.core.BlockPos
@@ -38,6 +39,7 @@ abstract class NetworkRegistry : IRegister {
             )
             info { "Registering packets for network '$name'..." }
             for (packet in listeners) {
+                info { "registering packet class ${packet.key.name} to $currentId" }
                 val packetClass = packet.key
                 val listener = packet.value
                 instance.messageBuilder(packetClass as Class<Packet>, currentId++)
@@ -122,6 +124,7 @@ abstract class NetworkRegistry : IRegister {
             NetworkDirection.PLAY_TO_CLIENT
         )
     }
+
     /**
      * This will send the packet directly to the given player
      *

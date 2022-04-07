@@ -8,6 +8,6 @@ import net.minecraft.world.item.CreativeModeTab
  * Our item that will be displayed in game
  */
 class QuantumItem : BlockItem(
-    Bpm.Blocks.QUANTUM,
+    Bpm.Blocks.Quantum,
     Properties().tab(CreativeModeTab.TAB_MISC).stacksTo(1).fireResistant()
 )

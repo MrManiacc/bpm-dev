@@ -1,11 +1,10 @@
-package com.github.bpmapi.register
+package com.github.bpmapi.api
 
+import com.github.bpmapi.register.IRegister
 import com.github.bpmapi.util.info
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.eventbus.api.IEventBus
 import thedarkcolour.kotlinforforge.KotlinModLoadingContext
-import thedarkcolour.kotlinforforge.forge.FORGE_BUS
-import thedarkcolour.kotlinforforge.forge.MOD_BUS
 import kotlin.reflect.full.isSubclassOf
 
 abstract class BpmMod(val id: String) {
