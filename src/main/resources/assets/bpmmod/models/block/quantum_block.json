@@ -1,6 +1,5 @@
 {
-  "parent": "block/cube_all",
-  "textures": {
-    "all": "bpmmod:blocks/quantum_block"
-  }
+  "loader": "forge:obj",
+  "model": "bpmmod:models/block/quantum_block.obj",
+  "flip-v": true
 }

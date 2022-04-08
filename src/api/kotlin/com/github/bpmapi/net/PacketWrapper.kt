@@ -44,17 +44,12 @@ class PacketWrapper<T : Packet>(private val supplier: () -> T) {
                     }
                 }
                 NetworkDirection.PLAY_TO_SERVER -> {
-                    DistExecutor.unsafeRunWhenOn(Dist.DEDICATED_SERVER) {
-                        Runnable {
-                            for (listener in serverListeners) {
-                                if (listener(packet, ctx)) {
-                                    handled = true
-                                    break
-                                }
-                            }
+                    for (listener in serverListeners) {
+                        if (listener(packet, ctx)) {
+                            handled = true
+                            break
                         }
                     }
-
                 }
                 else -> warn { "Attempted to handle login packet" }
 

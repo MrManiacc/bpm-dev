@@ -26,11 +26,20 @@ class Graph(internal val tile: QuantumTile) : Serial {
     private var nextNodeId = 1
     private var nextPinId = 1_000_000
     private var nextLinkId = 1
-    val nodes: Collection<Node> get() = nodeMap.values
-    val inputs: Collection<Pin> get() = inputToNode.values
-    val outputs: Collection<Pin> get() = outputToNode.values
-    val heads: Set<TickNode> get() = tickNodes
-    val links: Map<Int, Pair<Int, Int>> get() = linkMap
+    internal val nodes: Collection<Node> get() = nodeMap.values
+    internal val heads: Set<TickNode> get() = tickNodes
+    internal val links: Map<Int, Pair<Int, Int>> get() = linkMap
+    internal val screenSpace = ScreenSpace()
+    private var meta: String? = null
+
+    internal fun setMeta(meta: String) {
+        this.meta = meta
+    }
+
+    internal inline fun takeMeta(meta: (String) -> Unit) {
+        this.meta?.apply(meta)
+        this.meta = null
+    }
 
     fun addPin(pin: Pin) {
         if (pin.id == -1) pin.id = nextPinId++
@@ -38,7 +47,7 @@ class Graph(internal val tile: QuantumTile) : Serial {
         else inputToNode[pin.id] = pin
     }
 
-    fun findFunction(name: String): FunctionNode? {
+    internal fun findFunction(name: String): FunctionNode? {
         for (node in nodes.filterIsInstance<FunctionNode>()) {
             if ((node.NameIn.value as String) == name) return node
         }
@@ -92,7 +101,7 @@ class Graph(internal val tile: QuantumTile) : Serial {
         }
     }
 
-    inline fun iterateLinks(link: (Int, Pin, Pin) -> Unit) {
+    internal inline fun iterateLinks(link: (Int, Pin, Pin) -> Unit) {
         for (node in nodes) {
             for (input in node.inputs) {
                 for (links in input.links) {
@@ -102,25 +111,22 @@ class Graph(internal val tile: QuantumTile) : Serial {
         }
     }
 
-    inline fun iterate(node: (Node) -> Unit) {
+    internal inline fun iterate(node: (Node) -> Unit) {
         nodes.forEach(node)
     }
 
-    fun addMeta(nodeId: Int, x: Float, y: Float) {
-        nodePositions.add(PositionMeta(nodeId, x, y))
+    internal fun addMeta(nodeId: Int, x: Float, y: Float) {
+        screenSpace.metas.add(PositionMeta(nodeId, x, y))
     }
 
-    fun drainMetas(iterator: (PositionMeta) -> Unit) {
-        if (nodePositions.isEmpty()) return
-        var first = nodePositions.removeFirstOrNull()
-        while (first != null) {
-            iterator(first)
-            first = nodePositions.removeFirstOrNull()
-        }
+    internal fun setScreenSpaceMeta(x: Float, y: Float) {
+        screenSpace.x = x
+        screenSpace.y = y
     }
 
     override fun CompoundTag.serialize() {
-        putDeepList("nodePositions", nodePositions)
+        putBoolean("hasMeta", meta != null)
+        if (meta != null) putString("meta", meta!!)
         putInt("nextNodeId", nextNodeId)
         putInt("nextPinId", nextPinId)
         putInt("nextLinkId", nextLinkId)
@@ -136,6 +142,7 @@ class Graph(internal val tile: QuantumTile) : Serial {
 
 
     override fun CompoundTag.deserialize() {
+        if (getBoolean("hasMeta")) meta = getString("meta")
         nextNodeId = getInt("nextNodeId")
         nextPinId = getInt("nextPinId")
         nextLinkId = getInt("nextLinkId")
@@ -155,11 +162,32 @@ class Graph(internal val tile: QuantumTile) : Serial {
             val output = findByOutputId(links.getInt("output_$index")) ?: return@forEachIndexed
             link(input, output, linkId)
         }
+
     }
 
     fun removePin(id: Int) {
         outputToNode.remove(id)
         inputToNode.remove(id)
+    }
+
+    data class ScreenSpace(var x: Float = 0f, var y: Float = 0f, var applied: Boolean = false) :
+        INBTSerializable<CompoundTag> {
+        val metas: MutableList<PositionMeta> = ArrayList()
+
+        override fun serializeNBT(): CompoundTag {
+            val tag = CompoundTag()
+            tag.putFloat("x", x)
+            tag.putFloat("y", y)
+            tag.putDeepList("metas", metas)
+            return tag
+        }
+
+        override fun deserializeNBT(nbt: CompoundTag) {
+            x = nbt.getFloat("x")
+            y = nbt.getFloat("y")
+            nbt.getDeepList("metas", metas)
+        }
+
     }
 
     data class PositionMeta(var nodeId: Int = 0, var x: Float = 0f, var y: Float = 0f) : INBTSerializable<CompoundTag> {

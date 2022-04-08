@@ -4,22 +4,20 @@ package com.github.bpm
 
 import com.github.bpm.objects.quantum.QuantumBlock
 import com.github.bpm.objects.quantum.QuantumItem
+import com.github.bpm.objects.quantum.QuantumRenderer
 import com.github.bpm.objects.quantum.QuantumTile
 import com.github.bpm.render.NodeRenderer
 import com.github.bpm.util.*
-import com.github.bpm.util.runOnRender
-import com.github.bpm.util.whenClient
 import com.github.bpmapi.api.BpmMod
-import com.github.bpmapi.api.graph.node.InsertNode
+import com.github.bpmapi.api.graph.node.*
 import com.github.bpmapi.register.*
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
-import net.minecraftforge.api.distmarker.Dist
-import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.client.event.ScreenOpenEvent
+import net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers
 import net.minecraftforge.fml.common.Mod
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent
 import net.minecraftforge.registries.ForgeRegistries
 
@@ -28,20 +26,20 @@ object Bpm : BpmMod("bpmmod") {
     /**
      * ========================Network registry=======================
      */
-    object Renderers : RenderRegistry() {
-        val VarNode by renderer(NodeRenderer::renderVariableNode)
-        val TickNode by renderer(NodeRenderer::renderTickNode)
-        val ExtractNode by renderer(NodeRenderer::renderExtract)
-        val InsertNode by renderer(NodeRenderer::renderInsert)
-        val BufferNode by renderer(NodeRenderer::renderBufferNode)
-        val BlockNode by renderer(NodeRenderer::renderBlockNode)
-        val FunctionNode by renderer(NodeRenderer::renderFunctionNode)
-        val CallNode by renderer(NodeRenderer::renderCallNode)
+    object Renderers : NodeRegistry() {
+        val VarNode by register("Variable", { VarNode() }, NodeRenderer::renderVariableNode)
+        val TickNode by register("Tick", { TickNode() }, NodeRenderer::renderTickNode)
+        val ExtractNode by register("Extract", { ExtractNode() }, NodeRenderer::renderExtract)
+        val InsertNode by register("Insert", { InsertNode() }, NodeRenderer::renderInsert)
+        val BufferNode by register("Buffer", { BufferNode() }, NodeRenderer::renderBufferNode)
+        val BlockNode by register("Block", { BlockNode() }, NodeRenderer::renderBlockNode)
+        val FunctionNode by register("Function", { FunctionNode() }, NodeRenderer::renderFunctionNode)
+        val CallNode by register("Call", { CallNode() }, NodeRenderer::renderCallNode)
 
-        val EventPin by renderer(NodeRenderer::renderEventPin)
-        val VarPin by renderer(NodeRenderer::renderVarPin)
-        val InvPin by renderer(NodeRenderer::renderInventoryPin)
-        val LinkPin by renderer(NodeRenderer::renderLinkedPin)
+        val EventPin by register(NodeRenderer::renderEventPin)
+        val VarPin by register(NodeRenderer::renderVarPin)
+        val InvPin by register(NodeRenderer::renderInventoryPin)
+        val LinkPin by register(NodeRenderer::renderLinkedPin)
     }
 
     /**
@@ -65,6 +63,11 @@ object Bpm : BpmMod("bpmmod") {
                 runOnRender(Gui::init)
             }
         }
+
+        fun clientRegisterRenderers(event: RegisterRenderers) {
+            event.registerBlockEntityRenderer(Tiles.Quantum) { QuantumRenderer(it) }
+        }
+
     }
 
     /**

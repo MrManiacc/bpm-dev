@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
 
 @Suppress("UNCHECKED_CAST")
 abstract class RenderRegistry : IRegister {
-    val renderers: MutableMap<KClass<out Any>, Renderer<out Any>> = HashMap()
+   protected val renderers: MutableMap<KClass<out Any>, Renderer<out Any>> = HashMap()
 
     operator fun <T : Any> get(target: KClass<T>): Renderer<T> {
         if (!renderers.containsKey(target)) error("Attempted to retrieve invalid renderer ${target.qualifiedName}")

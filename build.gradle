@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://maven.parchmentmc.org' }
         mavenCentral()
     }
     dependencies {
@@ -9,16 +10,18 @@ buildscript {
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
         // OPTIONAL Gradle plugin for Kotlin Serialization
         classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
+        classpath 'org.parchmentmc:librarian:1.+'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'kotlinx-serialization'
 
 apply from: 'https://raw.githubusercontent.com/thedarkcolour/KotlinForForge/site/thedarkcolour/kotlinforforge/gradle/kff-3.1.0.gradle'
 
-version = '1.0.0'
+version = '1.0.1-alpha'
 group = 'com.github.bpmmod'
 archivesBaseName = 'bpmmod'
 
@@ -36,8 +39,8 @@ sourceSets {
 }
 
 minecraft {
-    mappings channel: 'official', version: '1.18.2'
-
+//    mappings channel: 'official', version: '1.18.2'
+    mappings channel: 'parchment', version: '1.18.2-2022.03.13-1.18.2'
     runs {
         client {
             workingDirectory project.file('run')

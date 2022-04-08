@@ -143,16 +143,20 @@ inline fun <reified T : INBTSerializable<CompoundTag>> CompoundTag.putDeepList(
 
 /**This will read a list of the given type**/
 inline fun <reified T : INBTSerializable<CompoundTag>> CompoundTag.getDeepList(name: String): List<T> {
-    val tag = this.getCompound("${name}_list") ?: return emptyList()
-    val size = this.getInt("${name}_list_size")
     val list = ArrayList<T>()
+    getDeepList(name, list)
+    return list
+}
+
+/**This will read a list of the given type**/
+inline fun <reified T : INBTSerializable<CompoundTag>> CompoundTag.getDeepList(name: String, list: MutableList<T>) {
+    val tag = this.getCompound("${name}_list") ?: return
+    val size = this.getInt("${name}_list_size")
     for (i in 0 until size) {
         val value = tag.getCompound("v_$i") ?: continue
         val clazz = tag.getClass("c_$i")
-        if (T::class.java.isAssignableFrom(clazz))
-            list.add((clazz.newInstance() as T).apply { deserializeNBT(value) })
+        if (T::class.java.isAssignableFrom(clazz)) list.add((clazz.newInstance() as T).apply { deserializeNBT(value) })
     }
-    return list
 }
 
 /**

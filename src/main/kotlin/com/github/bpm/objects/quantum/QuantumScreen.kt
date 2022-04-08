@@ -11,10 +11,9 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.TextComponent
 
 class QuantumScreen(val tile: QuantumTile) : Screen(TextComponent("Quantum Screen")) {
-    private val context = NodeEditorContext()
     private val nodeContext = ImNodesContext()
     private val propertiesRenderer = PropertiesRenderer(tile.graph)
-    private val graphRenderer = GraphRenderer(tile.graph)
+    private val graphRenderer = GraphRenderer(tile, nodeContext)
     private var closed = false
 
     override fun init() {
@@ -32,18 +31,10 @@ class QuantumScreen(val tile: QuantumTile) : Screen(TextComponent("Quantum Scree
         graphRenderer.poll()
     }
 
-    fun close() {
-        if (!closed) {
-            graphRenderer.beforeClose()
-            tile.pushGraph()
-            context.destroy()
-            nodeContext.destroy()
-            closed = true
-        }
-    }
-
     override fun onClose() {
-        close()
+        graphRenderer.pushUpdate()
+        nodeContext.destroy()
+        closed = true
         super.onClose()
     }
 }
