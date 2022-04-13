@@ -34,8 +34,6 @@ class VarPin(
             this.value = other.value
         }
     }
-
-
     inline operator fun <reified T : Any> invoke(defaultValue: T? = null): T? {
         if (connectorType == ConnectorType.Input && isLinked()) {
             val value = links<VarPin>().first().value ?: this.value

@@ -2,20 +2,32 @@
 
 package com.github.bpm
 
-import com.github.bpm.objects.quantum.QuantumBlock
-import com.github.bpm.objects.quantum.QuantumItem
-import com.github.bpm.objects.quantum.QuantumRenderer
-import com.github.bpm.objects.quantum.QuantumTile
+import com.github.bpm.quantum.QuantumBlock
+import com.github.bpm.quantum.QuantumItem
+import com.github.bpm.quantum.QuantumRenderer
+import com.github.bpm.quantum.QuantumTile
 import com.github.bpm.render.NodeRenderer
 import com.github.bpm.util.*
 import com.github.bpmapi.api.BpmMod
-import com.github.bpmapi.api.graph.node.*
+import com.github.bpmapi.api.graph.node.functions.CallNode
+import com.github.bpmapi.api.graph.node.functions.FunctionNode
+import com.github.bpmapi.api.graph.node.items.BufferNode
+import com.github.bpmapi.api.graph.node.items.ExtractNode
+import com.github.bpmapi.api.graph.node.items.FilterNode
+import com.github.bpmapi.api.graph.node.items.InsertNode
+import com.github.bpmapi.api.graph.node.power.ExtractPowerNode
+import com.github.bpmapi.api.graph.node.power.InsertPowerNode
+import com.github.bpmapi.api.graph.node.utilities.TickNode
+import com.github.bpmapi.api.graph.node.world.BlockNode
 import com.github.bpmapi.register.*
+import net.minecraft.client.renderer.ItemBlockRenderTypes
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers
+import net.minecraftforge.eventbus.api.IEventBus
 import net.minecraftforge.fml.common.Mod
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent
@@ -27,14 +39,22 @@ object Bpm : BpmMod("bpmmod") {
      * ========================Network registry=======================
      */
     object Renderers : NodeRegistry() {
-        val VarNode by register("Variable", { VarNode() }, NodeRenderer::renderVariableNode)
-        val TickNode by register("Tick", { TickNode() }, NodeRenderer::renderTickNode)
-        val ExtractNode by register("Extract", { ExtractNode() }, NodeRenderer::renderExtract)
-        val InsertNode by register("Insert", { InsertNode() }, NodeRenderer::renderInsert)
-        val BufferNode by register("Buffer", { BufferNode() }, NodeRenderer::renderBufferNode)
-        val BlockNode by register("Block", { BlockNode() }, NodeRenderer::renderBlockNode)
-        val FunctionNode by register("Function", { FunctionNode() }, NodeRenderer::renderFunctionNode)
-        val CallNode by register("Call", { CallNode() }, NodeRenderer::renderCallNode)
+        val VarNode by register(
+            "Variable",
+            "utilities",
+            { com.github.bpmapi.api.graph.node.utilities.VarNode() },
+            NodeRenderer::renderVariableNode
+        )
+        val TickNode by register("Tick", "utilities", { TickNode() }, NodeRenderer::renderTickNode)
+        val ExtractNode by register("Extract", "items", { ExtractNode() }, NodeRenderer::renderExtract)
+        val InsertNode by register("Insert", "items", { InsertNode() }, NodeRenderer::renderInsert)
+        val InsertPowerNode by register("Insert", "power", { InsertPowerNode() }, NodeRenderer::renderInsertPower)
+        val ExtractPowerNode by register("Extract", "power", { ExtractPowerNode() }, NodeRenderer::renderExtractPower)
+        val BufferNode by register("Buffer", "utilities", { BufferNode() }, NodeRenderer::renderBufferNode)
+        val BlockNode by register("Block Link", "world", { BlockNode() }, NodeRenderer::renderBlockNode)
+        val FilterNode by register("Filter", "items", { FilterNode() }, NodeRenderer::renderFilterNode)
+        val FunctionNode by register("Function", "functions", { FunctionNode() }, NodeRenderer::renderFunctionNode)
+        val CallNode by register("Call", "functions", { CallNode() }, NodeRenderer::renderCallNode)
 
         val EventPin by register(NodeRenderer::renderEventPin)
         val VarPin by register(NodeRenderer::renderVarPin)
@@ -48,6 +68,12 @@ object Bpm : BpmMod("bpmmod") {
     object Packets : NetworkRegistry() {
         val GraphUpdate by register { GraphUpdate() }
         val GraphRequest by register { GraphRequest() }
+        val Selection by register { Selection() }
+
+        override fun register(modBus: IEventBus, forgeBus: IEventBus, modId: String) {
+            super.register(modBus, forgeBus, modId)
+            Selection.serverListener(Selections::stopSelection)
+        }
     }
 
     /**
@@ -68,6 +94,19 @@ object Bpm : BpmMod("bpmmod") {
             event.registerBlockEntityRenderer(Tiles.Quantum) { QuantumRenderer(it) }
         }
 
+        fun clientSetup(event: FMLClientSetupEvent) {
+            ItemBlockRenderTypes.setRenderLayer(Blocks.Quantum, RenderType.cutout());
+        }
+
+        override fun register(modBus: IEventBus, forgeBus: IEventBus, modId: String) {
+            super.register(modBus, forgeBus, modId)
+            whenClient(false) {
+                forgeBus.addListener(Selections::tick)
+                forgeBus.addListener(Selections::render)
+                forgeBus.addListener(Selections::clickBlock)
+                forgeBus.addListener(Selections::clickEmpty)
+            }
+        }
     }
 
     /**

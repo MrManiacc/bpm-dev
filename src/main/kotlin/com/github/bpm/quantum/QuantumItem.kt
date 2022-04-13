@@ -1,4 +1,4 @@
-package com.github.bpm.objects.quantum
+package com.github.bpm.quantum
 
 import com.github.bpm.Bpm
 import net.minecraft.world.item.BlockItem

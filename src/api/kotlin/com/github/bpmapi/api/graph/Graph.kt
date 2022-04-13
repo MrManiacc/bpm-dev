@@ -1,15 +1,14 @@
 package com.github.bpmapi.api.graph
 
-import com.github.bpm.objects.quantum.QuantumTile
+import com.github.bpm.quantum.QuantumTile
 import com.github.bpmapi.api.graph.connector.Pin
-import com.github.bpmapi.api.graph.node.FunctionNode
+import com.github.bpmapi.api.graph.node.functions.FunctionNode
 import com.github.bpmapi.api.graph.node.Node
-import com.github.bpmapi.api.graph.node.TickNode
+import com.github.bpmapi.api.graph.node.utilities.TickNode
 import com.github.bpmapi.util.Serial
 import com.github.bpmapi.util.getDeepList
 import com.github.bpmapi.util.putDeepList
 import net.minecraft.nbt.CompoundTag
-import net.minecraftforge.common.util.INBTSerializable
 
 /**
  * A graph is a wrapper around all of the nodes. While nodes do share their connections directly
@@ -21,7 +20,6 @@ class Graph(internal val tile: QuantumTile) : Serial {
     private val inputToNode: MutableMap<Int, Pin> = HashMap()
     private val outputToNode: MutableMap<Int, Pin> = HashMap()
     private val linkMap: MutableMap<Int, Pair<Int, Int>> = HashMap()
-    private val nodePositions: MutableList<PositionMeta> = ArrayList()
     private val tickNodes: MutableSet<TickNode> = HashSet()
     private var nextNodeId = 1
     private var nextPinId = 1_000_000
@@ -29,7 +27,6 @@ class Graph(internal val tile: QuantumTile) : Serial {
     internal val nodes: Collection<Node> get() = nodeMap.values
     internal val heads: Set<TickNode> get() = tickNodes
     internal val links: Map<Int, Pair<Int, Int>> get() = linkMap
-    internal val screenSpace = ScreenSpace()
     private var meta: String? = null
 
     internal fun setMeta(meta: String) {
@@ -115,15 +112,6 @@ class Graph(internal val tile: QuantumTile) : Serial {
         nodes.forEach(node)
     }
 
-    internal fun addMeta(nodeId: Int, x: Float, y: Float) {
-        screenSpace.metas.add(PositionMeta(nodeId, x, y))
-    }
-
-    internal fun setScreenSpaceMeta(x: Float, y: Float) {
-        screenSpace.x = x
-        screenSpace.y = y
-    }
-
     override fun CompoundTag.serialize() {
         putBoolean("hasMeta", meta != null)
         if (meta != null) putString("meta", meta!!)
@@ -151,8 +139,6 @@ class Graph(internal val tile: QuantumTile) : Serial {
         outputToNode.clear()
         inputToNode.clear()
         linkMap.clear()
-        nodePositions.clear()
-        nodePositions.addAll(getDeepList("nodePositions"))
         val nodes = getDeepList<Node>("nodes")
         nodes.forEach(::addNode)
         val links = getCompound("links")
@@ -168,43 +154,6 @@ class Graph(internal val tile: QuantumTile) : Serial {
     fun removePin(id: Int) {
         outputToNode.remove(id)
         inputToNode.remove(id)
-    }
-
-    data class ScreenSpace(var x: Float = 0f, var y: Float = 0f, var applied: Boolean = false) :
-        INBTSerializable<CompoundTag> {
-        val metas: MutableList<PositionMeta> = ArrayList()
-
-        override fun serializeNBT(): CompoundTag {
-            val tag = CompoundTag()
-            tag.putFloat("x", x)
-            tag.putFloat("y", y)
-            tag.putDeepList("metas", metas)
-            return tag
-        }
-
-        override fun deserializeNBT(nbt: CompoundTag) {
-            x = nbt.getFloat("x")
-            y = nbt.getFloat("y")
-            nbt.getDeepList("metas", metas)
-        }
-
-    }
-
-    data class PositionMeta(var nodeId: Int = 0, var x: Float = 0f, var y: Float = 0f) : INBTSerializable<CompoundTag> {
-        override fun serializeNBT(): CompoundTag {
-            val tag = CompoundTag()
-            tag.putInt("nodeId", nodeId)
-            tag.putFloat("nodeX", x)
-            tag.putFloat("nodeY", y)
-            return tag
-        }
-
-        override fun deserializeNBT(nbt: CompoundTag) {
-            this.nodeId = nbt.getInt("nodeId")
-            this.x = nbt.getFloat("nodeX")
-            this.y = nbt.getFloat("nodeY")
-        }
-
     }
 
 }

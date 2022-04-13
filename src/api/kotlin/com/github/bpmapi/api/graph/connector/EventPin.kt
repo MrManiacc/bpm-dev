@@ -42,8 +42,7 @@ class EventPin<T : Event>(
         inline operator fun <reified T : Event> invoke(
             name: String,
             noinline eventReceiver: (T) -> Unit = {}
-        ): EventPin<T> =
-            EventPin(name, T::class, eventReceiver)
+        ): EventPin<T> = EventPin(name, T::class, eventReceiver)
     }
 
 }

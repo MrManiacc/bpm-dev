@@ -1,10 +1,11 @@
 package com.github.bpm.render
 
 import com.github.bpm.Bpm
-import com.github.bpm.objects.quantum.QuantumTile
+import com.github.bpm.quantum.QuantumTile
 import com.github.bpmapi.api.graph.Graph
 import com.github.bpmapi.api.graph.node.*
 import com.github.bpmapi.api.type.Type
+import com.github.bpmapi.register.NodeRegistry
 import com.github.bpmapi.register.NodesRegistry
 import com.google.common.collect.Queues
 import imgui.ImGui
@@ -24,16 +25,17 @@ class GraphRenderer(private val tile: QuantumTile, private val context: ImNodesC
     private val linkB = ImInt()
     private var hovered = false
     private val startTime = System.currentTimeMillis()
+    private var closePopup = false
 
     fun render() {
+        graph.takeMeta {
+            ImNodes.loadEditorStateFromIniString(context, it, it.length)
+        }
         graph.iterate(Node::render)
         ImNodes.miniMap(0.2f, ImNodesMiniMapLocation.BottomRight)
         hovered = ImNodes.isEditorHovered()
         graph.iterateLinks { linkId, input, output ->
             ImNodes.link(linkId, input.id, output.id)
-        }
-        graph.takeMeta {
-            ImNodes.loadEditorStateFromIniString(context, it, it.length)
         }
     }
 
@@ -43,9 +45,6 @@ class GraphRenderer(private val tile: QuantumTile, private val context: ImNodesC
      */
     fun pushUpdate() {
         graph.setMeta(ImNodes.saveEditorStateToIniString(context))
-//        graph.iterate {
-//            graph.addMeta(it.id, ImNodes.getNodeScreenSpacePosX(it.id), ImNodes.getNodeScreenSpacePosY(it.id))
-//        }
         tile.pushGraph()
     }
 
@@ -66,7 +65,7 @@ class GraphRenderer(private val tile: QuantumTile, private val context: ImNodesC
                 val selected = IntArray(selectedNum) { -1 }
                 ImNodes.getSelectedNodes(selected)
                 selected.forEach(graph::removeNode)
-                pushUpdate()
+                tile.pushGraph()
             }
 
             val linksNum = ImNodes.numSelectedLinks()
@@ -74,7 +73,7 @@ class GraphRenderer(private val tile: QuantumTile, private val context: ImNodesC
                 val selected = IntArray(linksNum) { -1 }
                 ImNodes.getSelectedLinks(selected)
                 selected.forEach(graph::unlink)
-                pushUpdate()
+                tile.pushGraph()
             }
         }
 
@@ -99,16 +98,50 @@ class GraphRenderer(private val tile: QuantumTile, private val context: ImNodesC
         }
         //Temporary
         if (ImGui.beginPopup("node_editor_context")) {
-            NodesRegistry.forEach {
-                if (ImGui.button("Create ${it.name}")) {
-                    val node = it.new()
-                    graph.addNode(node)
-                    ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
-                    ImGui.closeCurrentPopup()
-                    pushUpdate()
+            NodesRegistry.forEachGroup { name, nodes ->
+                if (name == "base") {
+                    nodes.forEach {
+                        if (ImGui.button("Create ${it.name}")) {
+                            val node = it.new()
+                            graph.addNode(node)
+                            ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                            ImGui.closeCurrentPopup()
+                            pushUpdate()
+                        }
+                    }
+                } else if (ImGui.button("$name##group")) {
+                    ImGui.openPopup("${name}_popup")
+                }
+                if (ImGui.beginPopup("${name}_popup")) {
+                    nodes.forEach {
+                        if (ImGui.button("Create ${it.name}")) {
+                            val node = it.new()
+                            graph.addNode(node)
+                            ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+                            closePopup = true
+                            ImGui.closeCurrentPopup()
+                            pushUpdate()
+                        }
+                    }
+                    ImGui.endPopup()
                 }
             }
+            if (closePopup) {
+                ImGui.closeCurrentPopup()
+                closePopup = false
+            }
             ImGui.endPopup()
+
+            //            NodesRegistry.forEach {
+//
+//                if (ImGui.button("Create ${it.name}")) {
+//                    val node = it.new()
+//                    graph.addNode(node)
+//                    ImNodes.setNodeScreenSpacePos(node.id, ImGui.getMousePosX(), ImGui.getMousePosY())
+//                    ImGui.closeCurrentPopup()
+//                    pushUpdate()
+//                }
+//            }
         }
     }
 

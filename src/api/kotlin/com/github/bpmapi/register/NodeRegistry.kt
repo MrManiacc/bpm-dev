@@ -12,15 +12,19 @@ import kotlin.reflect.KProperty
 
 abstract class NodeRegistry : RenderRegistry() {
     protected val nodes: MutableMap<KClass<out Node>, NodeWrapper<*>> = HashMap()
+    protected val groups: MutableMap<String, MutableList<NodeWrapper<*>>> = HashMap()
 
     @Suppress("UNCHECKED_CAST")
     protected inline fun <reified T : Node> register(
         nodeName: String,
+        group: String,
         noinline nodeSupplier: () -> T,
         noinline nodeRenderer: (T) -> Unit
     ): ReadOnlyProperty<Any?, NodeWrapper<T>> {
         val renderer: Renderer<T> = Renderer { nodeRenderer(it) }
-        val nodeWrapper = NodeWrapper(nodeName, nodeSupplier, renderer)
+        val nodeWrapper = NodeWrapper(nodeName, group, nodeSupplier, renderer)
+        if (!groups.containsKey(group)) groups[group] = ArrayList()
+        groups[group]!!.add(nodeWrapper)
         nodes[T::class] = nodeWrapper
         renderers[T::class] = renderer
         return object : ReadOnlyProperty<Any?, NodeWrapper<T>>, Supplier<NodeWrapper<T>> {
@@ -39,6 +43,9 @@ abstract class NodeRegistry : RenderRegistry() {
         nodes.values.forEach(consumer)
     }
 
+    fun forEachGroup(consumer: (name: String, List<NodeWrapper<*>>) -> Unit) {
+        groups.forEach(consumer)
+    }
 
     @Suppress("UNCHECKED_CAST")
     protected inline fun <reified T : Pin> register(
@@ -54,6 +61,7 @@ abstract class NodeRegistry : RenderRegistry() {
 
     override fun register(modBus: IEventBus, forgeBus: IEventBus, modId: String) {
         super.register(modBus, forgeBus, modId)
+        NodesRegistry.groups.putAll(groups)
         NodesRegistry.nodes.putAll(nodes)
     }
 }

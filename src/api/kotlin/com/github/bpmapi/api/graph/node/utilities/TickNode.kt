@@ -1,8 +1,9 @@
-package com.github.bpmapi.api.graph.node
+package com.github.bpmapi.api.graph.node.utilities
 
 import com.github.bpmapi.api.graph.connector.EventPin
 import com.github.bpmapi.api.graph.connector.VarPin
 import com.github.bpmapi.api.event.TickEvent
+import com.github.bpmapi.api.graph.node.Node
 import com.github.bpmapi.api.type.Type
 import net.minecraft.nbt.CompoundTag
 

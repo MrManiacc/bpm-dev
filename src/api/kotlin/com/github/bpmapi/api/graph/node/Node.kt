@@ -80,6 +80,6 @@ abstract class Node(val name: String) : Serial {
     /**
      * Used for rendering nodes
      */
-    fun render() = RendererRegistry.render(this)
+    fun render() = if(id != -1) RendererRegistry.render(this) else Unit
 
 }

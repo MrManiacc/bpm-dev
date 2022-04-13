@@ -1,11 +1,8 @@
 package com.github.bpm.util
 
-import com.github.bpm.Bpm
-import com.github.bpm.render.NodeRenderer
-import com.github.bpmapi.api.graph.Graph
 import com.github.bpmapi.api.graph.connector.CapabilityPin
-import com.github.bpmapi.api.graph.connector.InventoryPin
 import com.github.bpmapi.api.graph.connector.VarPin
+import com.github.bpmapi.api.graph.node.ISelectable
 import com.github.bpmapi.api.type.Type
 import imgui.ImGui
 import imgui.ImGuiStyle
@@ -76,7 +73,7 @@ object Gui {
         io.iniFilename = null
         io.addConfigFlags(ImGuiConfigFlags.NavEnableKeyboard)
         io.addConfigFlags(ImGuiConfigFlags.DockingEnable)
-        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
+//        io.addConfigFlags(ImGuiConfigFlags.ViewportsEnable)
         io.configViewportsNoTaskBarIcon = true
     }
 
@@ -85,10 +82,10 @@ object Gui {
      */
     private fun setupStyle(style: ImGuiStyle) {
         style.windowPadding.set(15f, 15f)
-        style.windowRounding = 5.0f
         style.framePadding.set(5.0f, 5.0f)
         style.itemSpacing.set(12.0f, 8.0f)
         style.itemInnerSpacing.set(8f, 6f)
+        style.windowRounding = 0f
         style.indentSpacing = 25f
         style.scrollbarSize = 15.0f
         style.scrollbarRounding = 9.0f
@@ -209,15 +206,15 @@ object Gui {
             ImGuiWindowFlags.NoMove,
             ImGuiWindowFlags.NoBringToFrontOnFocus
         )
+        val size = ImGui.getIO().displaySize
         val window = Minecraft.getInstance().window
         val viewport = ImGui.getMainViewport()
-        ImGui.setNextWindowPos(window.x.toFloat(), window.y.toFloat())
-        ImGui.setNextWindowSize(window.screenWidth.toFloat(), window.screenHeight.toFloat())
+        ImGui.setNextWindowPos(0f, 0f)
+        ImGui.setNextWindowSize(size.x, size.y)
         ImGui.pushStyleVar(ImGuiStyleVar.WindowPadding, 0f, 0f)
         ImGui.begin("Window##$name", flags)
         ImGui.setNextWindowViewport(viewport.id)
         ImGui.popStyleVar()
-
         var dockspaceID = ImGui.getID(DOCKSPACE_ID)
         val node = imgui.internal.ImGui.dockBuilderGetNode(dockspaceID)
         if (node == null || node.ptr == 0L || node.id == 0) //Null ptr? it we should now create?
@@ -269,9 +266,11 @@ internal fun CapabilityPin.drawValue() {
         }
         ImGui.endListBox()
     }
+
+    ImGui.text("Energy: ${this.energyStored}")
 }
 
-internal fun VarPin.drawValue(overrideName: String? = null, padding: Float = 38f) {
+internal fun VarPin.drawValue(overrideName: String? = null, padding: Float = 38f, drawSelectable: Boolean = true) {
     val name = (overrideName ?: this.name).replace(" in", "").replace(" out", "")
     var updated = false
     when (type) {
@@ -324,6 +323,11 @@ internal fun VarPin.drawValue(overrideName: String? = null, padding: Float = 38f
                 this.value = BlockPos(blockPosBuffer[0], blockPosBuffer[1], blockPosBuffer[2])
                 updated = true
             }
+            if (parent is ISelectable && drawSelectable) {
+                if (ImGui.button("select##${id}")) {
+                    Selections.start(parent as ISelectable)
+                }
+            }
         }
         Type.BLOCK_FACE -> {
             if (value !is Direction) value = Direction.NORTH
@@ -332,8 +336,14 @@ internal fun VarPin.drawValue(overrideName: String? = null, padding: Float = 38f
                 this.value = Direction.values()[currentFace.get()]
                 updated = true
             }
+            if (parent is ISelectable && drawSelectable) {
+                if (ImGui.button("select##${id}")) {
+                    Selections.start(parent as ISelectable)
+                }
+            }
         }
     }
+
     if (updated) this.links.values.mapNotNull {
         this.parent.graph.findByInputId(it) ?: this.parent.graph.findByOutputId(it)
     }.filterIsInstance<VarPin>().forEach {

@@ -4,7 +4,6 @@ import com.github.bpmapi.net.Packet
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Registry
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.NbtAccounter
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.level.Level
@@ -47,3 +46,19 @@ class GraphRequest : Packet() {
     }
 
 }
+
+class Selection : Packet() {
+    var uuid: UUID = UUID.randomUUID()
+    var start: Boolean = true
+
+    override fun write(buffer: FriendlyByteBuf) {
+        buffer.writeUUID(uuid)
+        buffer.writeBoolean(start)
+    }
+
+    override fun read(buffer: FriendlyByteBuf) {
+        uuid = buffer.readUUID()
+        start = buffer.readBoolean()
+    }
+}
+

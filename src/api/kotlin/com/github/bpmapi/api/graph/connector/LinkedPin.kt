@@ -9,10 +9,12 @@ import net.minecraftforge.common.capabilities.Capability
 import net.minecraftforge.common.util.LazyOptional
 import net.minecraftforge.energy.CapabilityEnergy
 import net.minecraftforge.energy.IEnergyStorage
+import net.minecraftforge.fluids.FluidStack
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler
 import net.minecraftforge.fluids.capability.IFluidHandler
 import net.minecraftforge.items.CapabilityItemHandler
 import net.minecraftforge.items.IItemHandler
+import kotlin.math.max
 
 /**
  * Represents a real world tile entity
@@ -132,6 +134,84 @@ class LinkedPin(
         val itemHandler = capability<IItemHandler>()
         if (itemHandler.isPresent) return itemHandler.resolve().get().isItemValid(slot, stack)
         return false
+    }
+
+    override fun receiveEnergy(maxReceive: Int, simulate: Boolean): Int {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().receiveEnergy(maxReceive, simulate)
+        return 0
+    }
+
+    override fun extractEnergy(maxExtract: Int, simulate: Boolean): Int {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().extractEnergy(maxExtract, simulate)
+        return 0
+    }
+
+    override fun getEnergyStored(): Int {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().energyStored
+        return 0
+    }
+
+    override fun getMaxEnergyStored(): Int {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().maxEnergyStored
+        return 0
+    }
+
+    override fun canExtract(): Boolean {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().canExtract()
+        return false
+    }
+
+    override fun canReceive(): Boolean {
+        val capability = capability<IEnergyStorage>()
+        if (capability.isPresent) return capability.resolve().get().canReceive()
+        return false
+    }
+
+    override fun getTanks(): Int {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().tanks
+        return 0
+    }
+
+    override fun getFluidInTank(tank: Int): FluidStack {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().getFluidInTank(tank)
+        return FluidStack.EMPTY
+    }
+
+    override fun getTankCapacity(tank: Int): Int {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().getTankCapacity(tank)
+        return 0
+    }
+
+    override fun isFluidValid(tank: Int, stack: FluidStack): Boolean {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().isFluidValid(tank, stack)
+        return false
+    }
+
+    override fun fill(resource: FluidStack?, action: IFluidHandler.FluidAction?): Int {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().fill(resource, action)
+        return 0
+    }
+
+    override fun drain(resource: FluidStack?, action: IFluidHandler.FluidAction?): FluidStack {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().drain(resource, action)
+        return FluidStack.EMPTY
+    }
+
+    override fun drain(maxDrain: Int, action: IFluidHandler.FluidAction?): FluidStack {
+        val capability = capability<IFluidHandler>()
+        if (capability.isPresent) return capability.resolve().get().drain(maxDrain, action)
+        return FluidStack.EMPTY
     }
 
 

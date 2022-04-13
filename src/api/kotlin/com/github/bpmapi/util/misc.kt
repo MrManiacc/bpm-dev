@@ -1,6 +1,8 @@
 package com.github.bpmapi.util
 
 import com.mojang.blaze3d.systems.RenderSystem
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
 import net.minecraft.resources.ResourceKey
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerLevel
@@ -16,6 +18,8 @@ import net.minecraftforge.items.IItemHandler
 import net.minecraftforge.items.ItemHandlerHelper
 import net.minecraftforge.server.ServerLifecycleHooks
 import java.util.concurrent.CompletableFuture
+
+data class BlockFace(val block: BlockPos, val face: Direction)
 
 private val currentServer: MinecraftServer
     get() = ServerLifecycleHooks.getCurrentServer()

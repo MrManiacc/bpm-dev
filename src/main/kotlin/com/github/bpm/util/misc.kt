@@ -3,10 +3,15 @@ package com.github.bpm.util
 import com.github.bpmapi.register.Registry
 import com.mojang.blaze3d.systems.RenderSystem
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.entity.BlockEntityType
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.common.util.LogicalSidedProvider
 import net.minecraftforge.fml.LogicalSide
@@ -116,4 +121,27 @@ inline fun <reified T : BlockEntity> Registry<BlockEntityType<*>>.tile(
     crossinline supplier: (Pair<BlockPos, BlockState>) -> T
 ): BlockEntityType<T> {
     return BlockEntityType.Builder.of({ pos, state -> supplier(pos to state) }, block).build(null)
+}
+
+
+/**
+ * This will raytrace the given distance for the given player
+ */
+fun Player.rayTrace(distance: Double = 75.0): BlockHitResult {
+    val rayTraceResult = pick(distance, 0f, false) as BlockHitResult
+    var xm = rayTraceResult.location.x
+    var ym = rayTraceResult.location.y
+    var zm = rayTraceResult.location.z
+    var pos = BlockPos(xm, ym, zm)
+    val block = level.getBlockState(pos)
+    if (block.isAir) {
+        if (rayTraceResult.direction == Direction.SOUTH)
+            zm--
+        if (rayTraceResult.direction == Direction.EAST)
+            xm--
+        if (rayTraceResult.direction == Direction.UP)
+            ym--
+    }
+    pos = BlockPos(xm, ym, zm)
+    return BlockHitResult(rayTraceResult.location, rayTraceResult.direction, pos, false)
 }

@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "XSX",
+    "AFA",
+    "GGG"
+  ],
+  "key": {
+    "X": {
+      "item": "minecraft:diamond"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
+    "A": {
+      "item": "minecraft:cobblestone_wall"
+    },
+    "G": {
+      "item": "minecraft:smooth_stone"
+    },
+    "F": {
+      "item": "minecraft:netherite_ingot"
+    }
+  },
+  "result": {
+    "item": "bpmmod:quantum_block",
+    "count": 1
+  }
+}

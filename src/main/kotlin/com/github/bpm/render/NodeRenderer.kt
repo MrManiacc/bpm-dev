@@ -1,11 +1,21 @@
 package com.github.bpm.render
 
-import com.github.bpm.Bpm
-import com.github.bpm.objects.quantum.QuantumScreen
+import com.github.bpm.util.Selections
 import com.github.bpm.util.drawValue
 import com.github.bpm.util.info
 import com.github.bpmapi.api.graph.connector.*
 import com.github.bpmapi.api.graph.node.*
+import com.github.bpmapi.api.graph.node.functions.CallNode
+import com.github.bpmapi.api.graph.node.functions.FunctionNode
+import com.github.bpmapi.api.graph.node.items.BufferNode
+import com.github.bpmapi.api.graph.node.items.ExtractNode
+import com.github.bpmapi.api.graph.node.items.FilterNode
+import com.github.bpmapi.api.graph.node.items.InsertNode
+import com.github.bpmapi.api.graph.node.power.ExtractPowerNode
+import com.github.bpmapi.api.graph.node.power.InsertPowerNode
+import com.github.bpmapi.api.graph.node.utilities.TickNode
+import com.github.bpmapi.api.graph.node.utilities.VarNode
+import com.github.bpmapi.api.graph.node.world.BlockNode
 import com.github.bpmapi.api.type.Type
 import imgui.ImColor
 import imgui.ImGui
@@ -14,9 +24,6 @@ import imgui.extension.imnodes.ImNodes
 import imgui.extension.imnodes.flag.ImNodesColorStyle
 import imgui.type.ImInt
 import imgui.type.ImString
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.screens.Screen
-import net.minecraftforge.client.event.ScreenOpenEvent
 
 object NodeRenderer {
     private val types = Type.values().map { it.name }.toTypedArray()
@@ -39,7 +46,7 @@ object NodeRenderer {
         renderPin(connector)
     }
 
-    fun renderInventoryPin(connector: InventoryPin) {
+    fun renderInventoryPin(connector: StorePin) {
 //        ImGui.text(connector.name)
         renderPin(connector)
     }
@@ -69,9 +76,14 @@ object NodeRenderer {
         begin(node)
         ImGui.pushItemWidth(80f)
         if (!node.Position.isLinked())
-            node.Position.drawValue()
+            node.Position.drawValue(drawSelectable = false)
         if (!node.Face.isLinked())
-            node.Face.drawValue()
+            node.Face.drawValue(drawSelectable = false)
+        if (!node.Position.isLinked() && !node.Face.isLinked()) {
+            if (ImGui.button("select##${node.id}")) {
+                Selections.start(node)
+            }
+        }
         if (!node.Position.isLinked())
             ImGui.text(node.BlockName)
         ImGui.popItemWidth()
@@ -83,25 +95,37 @@ object NodeRenderer {
         ImGui.pushItemWidth(80f)
         if (!node.ItemsPerTick.isLinked())
             node.ItemsPerTick.drawValue()
-
-//        if (node.ItemsPerTick.value as Int > 64) node.ItemsPerTick.value = 64
-//        if ((node.ItemsPerTick.value as Int) < 1) node.ItemsPerTick.value = 1
         ImGui.popItemWidth()
         end(node)
     }
 
+    fun renderExtractPower(node: ExtractPowerNode) {
+        begin(node, 120)
+        ImGui.pushItemWidth(80f)
+        if (!node.EnergyPerTick.isLinked())
+            node.EnergyPerTick.drawValue()
+        ImGui.popItemWidth()
+        end(node)
+    }
     fun renderBufferNode(node: BufferNode) {
         begin(node, 80)
         end(node)
     }
+    fun renderInsertPower(node: InsertPowerNode) {
+        begin(node, 120)
+        ImGui.pushItemWidth(80f)
+        if (!node.EnergyPerTick.isLinked())
+            node.EnergyPerTick.drawValue()
+        ImGui.popItemWidth()
+        end(node)
+    }
+
 
     fun renderInsert(node: InsertNode) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (!node.ItemsPerTick.isLinked())
             node.ItemsPerTick.drawValue()
-//        if (node.ItemsPerTick.value as Int > 64) node.ItemsPerTick.value = 64
-//        if ((node.ItemsPerTick.value as Int) < 1) node.ItemsPerTick.value = 1
         ImGui.popItemWidth()
         end(node)
     }
@@ -127,6 +151,14 @@ object NodeRenderer {
         end(node)
     }
 
+    fun renderFilterNode(node: FilterNode) {
+        begin(node, 200)
+        ImGui.pushItemWidth(80f)
+        node.NameRegex.drawValue()
+        ImGui.popItemWidth()
+        end(node)
+    }
+
     fun renderFunctionNode(node: FunctionNode) {
         begin(node, 200)
         ImGui.pushItemWidth(80f)
@@ -148,6 +180,7 @@ object NodeRenderer {
                 node.addParameter(pin)
                 node.graph.addPin(pin)
                 node.varName = "param${node.parameters.size}"
+                node.graph.tile.pushGraph()
             }
             ImGui.popItemWidth()
             ImGui.endCombo()
@@ -201,29 +234,5 @@ object NodeRenderer {
             ImNodes.endOutputAttribute()
         }
         ImNodes.endNode()
-//
-//        val size = if (node.inputs.size > node.outputs.size) node.inputs.size else node.outputs.size
-//        for (i in 0 until size) {
-//            if (i < node.inputs.size) {
-//                val input = node.inputs[i]
-//                ImNodes.beginInputAttribute(input.id)
-//                input.render()
-//                ImNodes.endInputAttribute()
-//                if (i < node.outputs.size) {
-//                    ImGui.sameLine()
-//                    val output = node.outputs[i]
-//                    ImNodes.beginOutputAttribute(output.id)
-//                    output.render()
-//                    ImNodes.endOutputAttribute()
-//                }
-//            } else {
-//                val output = node.outputs[i]
-//                ImNodes.beginOutputAttribute(output.id)
-//                output.render()
-//                ImNodes.endOutputAttribute()
-//            }
-//        }
-//        ImNodes.endNode()
-
     }
 }

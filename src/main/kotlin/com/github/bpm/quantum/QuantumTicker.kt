@@ -1,4 +1,4 @@
-package com.github.bpm.objects.quantum
+package com.github.bpm.quantum
 
 import com.github.bpm.Bpm
 import com.github.bpm.Bpm.Packets.sendToClient
@@ -8,17 +8,11 @@ import com.github.bpmapi.api.event.TickEvent
 import com.github.bpmapi.util.getLevel
 import net.minecraft.client.Minecraft
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.server.level.ServerPlayer
-import net.minecraft.util.Mth
-import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.entity.BlockEntityTicker
 import net.minecraft.world.level.block.state.BlockState
-import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.network.NetworkEvent
-import net.minecraftforge.network.NetworkEvent.Context
 import java.util.UUID
 import kotlin.math.abs
 

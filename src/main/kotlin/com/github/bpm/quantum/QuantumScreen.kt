@@ -1,4 +1,4 @@
-package com.github.bpm.objects.quantum
+package com.github.bpm.quantum
 
 import com.github.bpm.render.GraphRenderer
 import com.github.bpm.render.PropertiesRenderer
@@ -6,7 +6,6 @@ import com.github.bpm.util.Gui
 import com.mojang.blaze3d.vertex.PoseStack
 import imgui.extension.imnodes.ImNodes
 import imgui.extension.imnodes.ImNodesContext
-import imgui.extension.nodeditor.NodeEditorContext
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.chat.TextComponent
 
@@ -27,8 +26,8 @@ class QuantumScreen(val tile: QuantumTile) : Screen(TextComponent("Quantum Scree
 
     fun renderViewport() {
         ImNodes.editorContextSet(nodeContext)
-        Gui.nodeGraph("Quantum Screen", graphRenderer::render)
         graphRenderer.poll()
+        Gui.nodeGraph("Quantum Screen", graphRenderer::render)
     }
 
     override fun onClose() {

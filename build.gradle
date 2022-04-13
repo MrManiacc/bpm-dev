@@ -21,10 +21,9 @@ apply plugin: 'kotlinx-serialization'
 
 apply from: 'https://raw.githubusercontent.com/thedarkcolour/KotlinForForge/site/thedarkcolour/kotlinforforge/gradle/kff-3.1.0.gradle'
 
-version = '1.0.1-alpha'
+version = '1.1.0-alpha'
 group = 'com.github.bpmmod'
 archivesBaseName = 'bpmmod'
-
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 ext {
@@ -93,6 +92,11 @@ minecraft {
 
 repositories {
     mavenCentral()
+    maven {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+        url = "https://modmaven.dev/"
+    }
 }
 
 // Include assets and data from data generators
@@ -101,7 +105,7 @@ repositories {
 
 dependencies {
     // Use the latest version of Minecraft Forge
-    minecraft 'net.minecraftforge:forge:1.18.2-40.0.4'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.0.44'
 //    implementation(project("bpm-api"))
     library("io.github.spair:imgui-java-binding:$imguiVersion") {
         transitive = false
@@ -124,6 +128,7 @@ dependencies {
     implementation("io.github.spair:imgui-java-natives-windows:$imguiVersion")
     implementation("io.github.spair:imgui-java-natives-macos:$imguiVersion")
     implementation("io.github.spair:imgui-java-natives-linux:$imguiVersion")
+    runtimeOnly(fg.deobf("mekanism:Mekanism:1.18.2-10.2.0.459:all"))
 }
 
 

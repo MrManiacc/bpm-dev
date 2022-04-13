@@ -1,13 +1,15 @@
-package com.github.bpmapi.api.graph.node
+package com.github.bpmapi.api.graph.node.world
 
 import com.github.bpmapi.api.graph.connector.LinkedPin
 import com.github.bpmapi.api.graph.connector.VarPin
+import com.github.bpmapi.api.graph.node.ISelectable
+import com.github.bpmapi.api.graph.node.Node
 import com.github.bpmapi.api.type.Type
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.nbt.CompoundTag
 
-class BlockNode : Node("Block Link") {
+class BlockNode : Node("Block Link"), ISelectable {
     val Position by input(VarPin("pos", Type.BLOCK_POS, BlockPos.ZERO))
     val Face by input(VarPin("face", Type.BLOCK_FACE, Direction.NORTH))
     val Link by output(LinkedPin("block out", Position, Face))
@@ -29,6 +31,11 @@ class BlockNode : Node("Block Link") {
         Position.deserializeNBT(getCompound("position"))
         Face.deserializeNBT(getCompound("face"))
         Link.deserializeNBT(getCompound("link"))
+    }
+
+    override fun finishSelection(block: BlockPos, face: Direction) {
+        Position.value = block
+        Face.value = face
     }
 
 }

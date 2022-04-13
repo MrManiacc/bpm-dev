@@ -1,8 +1,8 @@
-package com.github.bpm.objects.quantum
+package com.github.bpm.quantum
 
 import com.github.bpm.Bpm
 import com.github.bpmapi.api.graph.Graph
-import com.github.bpmapi.api.graph.node.FunctionNode
+import com.github.bpmapi.api.graph.node.functions.FunctionNode
 import com.github.bpmapi.api.tile.BpmTile
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag

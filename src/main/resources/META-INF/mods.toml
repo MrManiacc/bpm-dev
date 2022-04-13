@@ -8,11 +8,11 @@ license='LGPL'
 [[mods]]
 modId="bpmmod"
 version="${file.jarVersion}"
-displayName="ExampleMod"
-credits="The ExampleMod dev team"
-authors="ExampleModAuthor"
+displayName="Bpm"
+credits="dooZyz"
+authors="dooZyz"
 description='''
-Example mod that uses Kotlin for Forge.
+Automate to your heart's content.
 '''
 [[dependencies.bpmmod]]
     modId="forge"
