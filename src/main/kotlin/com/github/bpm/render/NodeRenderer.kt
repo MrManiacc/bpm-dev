@@ -13,9 +13,11 @@ import com.github.bpmapi.api.graph.node.items.FilterNode
 import com.github.bpmapi.api.graph.node.items.InsertNode
 import com.github.bpmapi.api.graph.node.power.ExtractPowerNode
 import com.github.bpmapi.api.graph.node.power.InsertPowerNode
+import com.github.bpmapi.api.graph.node.utilities.RedstoneNode
 import com.github.bpmapi.api.graph.node.utilities.TickNode
 import com.github.bpmapi.api.graph.node.utilities.VarNode
 import com.github.bpmapi.api.graph.node.world.BlockNode
+import com.github.bpmapi.api.render.RenderContext
 import com.github.bpmapi.api.type.Type
 import imgui.ImColor
 import imgui.ImGui
@@ -26,32 +28,28 @@ import imgui.type.ImInt
 import imgui.type.ImString
 
 object NodeRenderer {
-    private val types = Type.values().map { it.name }.toTypedArray()
-    private val selected = ImInt(0)
-    private val bufferText = ImString()
-    private val bufferVec = ImVec2()
+    private val context = RenderContext()
 
-
-    fun renderLinkedPin(pin: LinkedPin) {
+    fun renderLinkedPin(pin: LinkedPin) = with(context) {
         renderPin(pin)
     }
 
-    fun renderEventPin(connector: EventPin<*>) {
+    fun renderEventPin(connector: EventPin<*>) = with(context) {
 //        ImGui.text(connector.name)
         renderPin(connector)
     }
 
-    fun renderVarPin(connector: VarPin) {
+    fun renderVarPin(connector: VarPin) = with(context) {
 //        ImGui.text(connector.name)
         renderPin(connector)
     }
 
-    fun renderInventoryPin(connector: StorePin) {
+    fun renderInventoryPin(connector: StorePin) = with(context) {
 //        ImGui.text(connector.name)
         renderPin(connector)
     }
 
-    fun renderVariableNode(node: VarNode) {
+    fun renderVariableNode(node: VarNode) = with(context) {
         ImNodes.pushColorStyle(ImNodesColorStyle.TitleBar, ImColor.intToColor(166, 47, 222))
         ImNodes.pushColorStyle(ImNodesColorStyle.TitleBarHovered, ImColor.intToColor(149, 20, 210))
         ImNodes.pushColorStyle(ImNodesColorStyle.TitleBarSelected, ImColor.intToColor(153, 10, 220))
@@ -72,7 +70,7 @@ object NodeRenderer {
         ImNodes.popColorStyle()
     }
 
-    fun renderBlockNode(node: BlockNode) {
+    fun renderBlockNode(node: BlockNode) = with(context) {
         begin(node)
         ImGui.pushItemWidth(80f)
         if (!node.Position.isLinked())
@@ -90,7 +88,7 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderExtract(node: ExtractNode) {
+    fun renderExtract(node: ExtractNode) = with(context) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (!node.ItemsPerTick.isLinked())
@@ -99,7 +97,7 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderExtractPower(node: ExtractPowerNode) {
+    fun renderExtractPower(node: ExtractPowerNode) = with(context) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (!node.EnergyPerTick.isLinked())
@@ -107,11 +105,13 @@ object NodeRenderer {
         ImGui.popItemWidth()
         end(node)
     }
-    fun renderBufferNode(node: BufferNode) {
+
+    fun renderBufferNode(node: BufferNode) = with(context) {
         begin(node, 80)
         end(node)
     }
-    fun renderInsertPower(node: InsertPowerNode) {
+
+    fun renderInsertPower(node: InsertPowerNode) = with(context) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (!node.EnergyPerTick.isLinked())
@@ -121,7 +121,7 @@ object NodeRenderer {
     }
 
 
-    fun renderInsert(node: InsertNode) {
+    fun renderInsert(node: InsertNode) = with(context) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (!node.ItemsPerTick.isLinked())
@@ -130,7 +130,22 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderCallNode(node: CallNode) {
+    fun renderRedstoneNode(node: RedstoneNode) = with(context) {
+        begin(node, 80)
+        //        ImGui.text(connector.name)
+        ImGui.pushItemWidth(100f)
+        if (!node.SignalIn.isLinked())
+            node.SignalIn.drawValue()
+        ImGui.popItemWidth()
+        renderPin(node.SignalIn)
+        renderPin(node.PowerOut)
+        ImGui.pushItemWidth(80f)
+        node.PowerOut.drawValue()
+        ImGui.popItemWidth()
+        end(node)
+    }
+
+    fun renderCallNode(node: CallNode) = with(context) {
         begin(node, 120)
         ImGui.pushItemWidth(80f)
         if (ImGui.button("set##${node.id}")) {
@@ -151,7 +166,7 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderFilterNode(node: FilterNode) {
+    fun renderFilterNode(node: FilterNode) = with(context) {
         begin(node, 200)
         ImGui.pushItemWidth(80f)
         node.NameRegex.drawValue()
@@ -159,7 +174,7 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderFunctionNode(node: FunctionNode) {
+    fun renderFunctionNode(node: FunctionNode) = with(context) {
         begin(node, 200)
         ImGui.pushItemWidth(80f)
         node.NameIn.drawValue()
@@ -189,7 +204,7 @@ object NodeRenderer {
         end(node)
     }
 
-    fun renderTickNode(node: TickNode) {
+    fun renderTickNode(node: TickNode) = with(context) {
         begin(node)
         ImGui.pushItemWidth(80f)
         node.Rate.drawValue()
@@ -198,41 +213,4 @@ object NodeRenderer {
         end(node)
     }
 
-    private fun begin(node: Node, size: Int = -1) {
-        ImGui.calcTextSize(bufferVec, node.name)
-        ImNodes.beginNode(node.id)
-        ImNodes.beginNodeTitleBar()
-        ImGui.text(node.name)
-        if (size != -1) {
-            ImGui.sameLine()
-            ImGui.dummy(size - bufferVec.x, 0f)
-        }
-        ImNodes.endNodeTitleBar()
-
-    }
-
-    private fun renderPin(pin: Pin) {
-        val size = ImNodes.getNodeDimensionsX(pin.parent.id)
-        if (pin.connectorType == Pin.ConnectorType.Output) {
-            ImGui.calcTextSize(bufferVec, pin.name)
-            val width = (size - bufferVec.x - 25)
-            ImGui.dummy(width, 0f)
-            ImGui.sameLine()
-            ImGui.text(pin.name)
-        } else ImGui.text(pin.name)
-    }
-
-    private fun end(node: Node, spacing: Boolean = true) {
-        node.inputs.forEach {
-            ImNodes.beginInputAttribute(it.id)
-            it.render()
-            ImNodes.endInputAttribute()
-        }
-        node.outputs.forEach {
-            ImNodes.beginOutputAttribute(it.id)
-            it.render()
-            ImNodes.endOutputAttribute()
-        }
-        ImNodes.endNode()
-    }
 }

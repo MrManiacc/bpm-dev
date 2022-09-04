@@ -17,6 +17,7 @@ import com.github.bpmapi.api.graph.node.items.FilterNode
 import com.github.bpmapi.api.graph.node.items.InsertNode
 import com.github.bpmapi.api.graph.node.power.ExtractPowerNode
 import com.github.bpmapi.api.graph.node.power.InsertPowerNode
+import com.github.bpmapi.api.graph.node.utilities.RedstoneNode
 import com.github.bpmapi.api.graph.node.utilities.TickNode
 import com.github.bpmapi.api.graph.node.world.BlockNode
 import com.github.bpmapi.register.*
@@ -55,6 +56,7 @@ object Bpm : BpmMod("bpmmod") {
         val FilterNode by register("Filter", "items", { FilterNode() }, NodeRenderer::renderFilterNode)
         val FunctionNode by register("Function", "functions", { FunctionNode() }, NodeRenderer::renderFunctionNode)
         val CallNode by register("Call", "functions", { CallNode() }, NodeRenderer::renderCallNode)
+        val RedstoneNode by register("Redstone", "world", { RedstoneNode() }, NodeRenderer::renderRedstoneNode)
 
         val EventPin by register(NodeRenderer::renderEventPin)
         val VarPin by register(NodeRenderer::renderVarPin)
@@ -136,6 +138,4 @@ object Bpm : BpmMod("bpmmod") {
     object Containers : Registry<MenuType<*>>(ForgeRegistries.CONTAINERS) {
 
     }
-
-
 }

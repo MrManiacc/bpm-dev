@@ -32,7 +32,7 @@ class VarNode(
     override fun finishSelection(block: BlockPos, face: Direction) {
         if (type == Type.BLOCK_POS)
             this.output.value = block
-        else if(type == Type.BLOCK_FACE)
+        else if (type == Type.BLOCK_FACE)
             this.output.value = face
     }
 

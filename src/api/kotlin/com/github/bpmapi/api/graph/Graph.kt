@@ -11,7 +11,7 @@ import com.github.bpmapi.util.putDeepList
 import net.minecraft.nbt.CompoundTag
 
 /**
- * A graph is a wrapper around all of the nodes. While nodes do share their connections directly
+ * A graph is a wrapper around all the nodes. While nodes do share their connections directly
  * via edges called "connectors", we still need to keep track of all nodes because unlike a programming
  * language where everything must always be linked up, in a node editor nodes are valid while unlinked (at least for rendering)
  */

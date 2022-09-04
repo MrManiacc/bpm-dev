@@ -27,6 +27,4 @@ abstract class BpmMod(val id: String) {
     internal companion object {
         internal lateinit var currentId: String
     }
-
-
 }
